@@ -1,0 +1,22 @@
+select COUNT(*), t1.a_contentname as MovieName
+from
+(
+    SELECT a_subscriberid,a_contentname
+    from awsma.event
+    where event_type in ('MovieViewStart','ContentViewStart')
+    and a_platform in ('Android','ANDROID')
+    and a_subscriberid is not null
+    and arrival_timestamp AT TIME ZONE 'UTC' BETWEEN SYSDATE - INTERVAL '30 DAY' AND SYSDATE
+    GROUP BY a_contentname,a_subscriberid
+
+)t1
+join
+(
+    SELECT a_subscriberid,a_browsinglanguage
+    from awsma.event
+    where event_type in ('BrowsingLanguage') and a_browsinglanguage='Tamil'
+    GROUP BY a_subscriberid,a_browsinglanguage
+
+)t2
+on t1.a_subscriberid=t2.a_subscriberid
+GROUP BY t1.a_contentname

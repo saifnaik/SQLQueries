@@ -1,0 +1,12 @@
+SELECT
+
+TO_CHAR(("Event Staging"."arrival_timestamp" AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS "Day of Arrival Timestamp",
+COUNT(DISTINCT "Event Staging"."a_subscriberid") AS "Count of distinct A Subscriberid"
+
+FROM "awsma"."event_staging" AS "Event Staging"
+
+GROUP BY TO_CHAR(("Event Staging"."arrival_timestamp" AT TIME ZONE 'UTC'), 'YYYY-MM-DD')
+
+ORDER BY "Day of Arrival Timestamp" DESC
+
+LIMIT 1000;

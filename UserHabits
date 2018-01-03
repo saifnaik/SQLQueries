@@ -1,0 +1,22 @@
+select t1.a_subscriberid as users,t4.count_0f_start,t4.days,t4.count_of_content,t3.play_duration_min,t4.last_watch_session,t3.avg_duration_min
+from
+(select a_subscriberid,min(arrival_timestamp) as signup_time,a_platform,a_appversion
+        from awsma.event where event_type not in ('Payments','NotificationReceive','NotificationOpen') and a_subscriberid is not null and datepart(month,arrival_timestamp)<8
+        group by a_subscriberid, a_platform, a_appversion)t1
+join
+    (select a_subscriberid,max(arrival_timestamp) as lastevent_time
+    from awsma.event where event_type is not null and a_subscriberid in(select a_subscriberid from awsma.event where event_type='SignupSuccess' and a_subscriberid is not null group by a_subscriberid)
+    group by a_subscriberid)t2
+    on t1.a_subscriberid=t2.a_subscriberid
+join
+    (select a_subscriberid,cast(sum(a_playduration) as int)/60 as play_duration_min,cast(avg(a_playduration) as int)/60 as avg_duration_min
+    from awsma.event where event_type in ('ContentViewStop','SongViewStop','SceneViewStop') and a_subscriberid in(select a_subscriberid from awsma.event where event_type='SignupSuccess' and a_subscriberid is not null group by a_subscriberid)
+    group by a_subscriberid)t3
+    on t1.a_subscriberid=t3.a_subscriberid
+join
+    (select a_subscriberid,count(*) as count_0f_start,count(distinct(datepart(day,arrival_timestamp))) as days,count(a_contentname) as count_of_content,max(arrival_timestamp) as last_watch_session
+    from awsma.event where event_type in ('ContentViewStart','SongViewStart','SceneViewStart') and a_subscriberid in(select a_subscriberid from awsma.event where event_type='SignupSuccess' and a_subscriberid is not null group by a_subscriberid)
+    group by a_subscriberid)t4
+
+on t1.a_subscriberid=t4.a_subscriberid
+group by t1.a_subscriberid,t1.signup_time,t2.lastevent_time,t4.count_0f_start,t4.days,t4.count_of_content,t3.play_duration_min,t3.avg_duration_min,t4.last_watch_session

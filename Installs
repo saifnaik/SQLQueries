@@ -1,0 +1,12 @@
+require(redshift)
+conn <- redshift.connect("jdbc:postgresql://mobileanalyticsautoexporttoredshi-redshiftcluster-xemoks49k6k4.cjipfydhugvd.us-east-1.redshift.amazonaws.com:8192/events", "master", "Fastfilmz!2#")
+
+query <- dbGetQuery(conn,"SELECT arrival_timestamp as TIME,count(distinct(a_subscriberid)) as new_installs
+from awsma.event
+                    where event_type='SignupSuccess' and a_subscriberid is not null
+                    group by TIME
+                    order by TIME DESC
+                    LIMIT 1000
+                    ")
+
+write.table(query, file="Installtest.csv", sep = ",", row.names=FALSE)

@@ -1,0 +1,14 @@
+require(redshift)
+options(java.parameters = "-Xmx8000m")
+conn <- redshift.connect("jdbc:postgresql://mobileanalyticsautoexporttoredshi-redshiftcluster-9agy39zv9srz1.cjipfydhugvd.us-east-1.redshift.amazonaws.com:8192/events", "master", "Fastfilmz!2#")
+
+query <- dbGetQuery(conn,"SELECT \"Event\".\"a_songname\" AS \"SongName\", a_browsinglanguage,
+COUNT(*) AS \"Total_Count\"
+FROM \"awsma\".\"event\" AS \"Event\"
+WHERE ((\"Event\".\"arrival_timestamp\" AT TIME ZONE 'UTC') BETWEEN SYSDATE - INTERVAL '90 DAY' AND SYSDATE) AND \"Event\".\"a_songname\" IS NOT NULL
+AND event_type='SongViewStart'
+GROUP BY \"Event\".\"a_songname\",a_browsinglanguage
+ORDER BY \"Total_Count\" DESC")
+
+write.table(query, file="SongsClickedLang.csv", sep = ",", row.names=FALSE)
+

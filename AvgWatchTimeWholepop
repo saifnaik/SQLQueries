@@ -1,0 +1,35 @@
+select (t1.sum/60)/t2.COUNT as AVERAGE_TIME,t1.date
+from(
+	select TO_CHAR((arrival_timestamp AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS date,a_subscriberid,
+	sum(a_playduration) as sum
+	from awsma.event
+	where event_type in ('MovieViewStop','ContentViewStop')
+	and a_platform in ('Android','ANDROID')
+	and a_subscriberid is not null
+	and a_playduration is not null
+	and a_playduration>0
+	and a_appversion='3.2.1'
+	group by date,a_subscriberid
+)t1
+(
+	select COUNT(DISTINCT(a_subscriberid)) AS COUNT
+	from awsma.event
+	where event_type='FirstInstall'
+	and a_appversion='3.2.1'
+)t2
+
+	where t1.sum>60
+	group by t1.date
+	order by t1.date desc
+
+select t1.a_subscriberid, t2.a_subscriberid,
+datepart(hour,t1.arrival_timestamp)
+from
+awsma.event t1,
+awsma.event t2
+
+where t1.event_type='ContentViewStart' and t2.event_type='ContentViewStart'
+and datepart(hour,t1.arrival_timestamp)=datepart(hour,t2.arrival_timestamp)
+and t1.a_subscriberid != t2.a_subscriberid
+group by datepart(hour,t1.arrival_timestamp),t1.a_subscriberid, t2.a_subscriberid
+limit 10

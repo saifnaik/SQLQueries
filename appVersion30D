@@ -1,0 +1,14 @@
+require(redshift)
+options(java.parameters = "-Xmx8000m")
+conn <- redshift.connect("jdbc:postgresql://mobileanalyticsautoexporttoredshi-redshiftcluster-9agy39zv9srz1.cjipfydhugvd.us-east-1.redshift.amazonaws.com:8192/events", "master", "Fastfilmz!2#")
+
+query <- dbGetQuery(conn,"
+    SELECT COUNT(a_appversion) as TOTAL_COUNT,TO_CHAR((arrival_timestamp AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS Day
+    FROM awsma.event
+    WHERE arrival_timestamp AT TIME ZONE 'UTC' BETWEEN SYSDATE - INTERVAL '30 DAY' AND SYSDATE AND a_appversion='3.2.4'
+    AND event_type='FirstInstall'
+    GROUP BY Day
+    ORDER BY TOTAL_COUNT DESC
+")
+
+write.table(query, file="FirstInstall3.2.4.csv", sep = ",", row.names=FALSE)

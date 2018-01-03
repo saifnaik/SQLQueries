@@ -1,0 +1,20 @@
+require(redshift)
+options(java.parameters = "-Xmx8000m")
+conn <- redshift.connect("jdbc:postgresql://mobileanalyticsautoexporttoredshi-redshiftcluster-xemoks49k6k4.cjipfydhugvd.us-east-1.redshift.amazonaws.com:8192/events", "master", "Fastfilmz!2#")
+
+query <- dbGetQuery(conn,
+"
+select (sum(t1.a_playduration)/60)/COUNT(DISTINCT(t2.a_subscriberid)) as AVERAGE_TIME, TO_CHAR((t1.arrival_timestamp AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS date
+from awsma.event t1, awsma.event t2
+where t1.event_type in ('MovieViewStop','ContentViewStop') and t2.event_type='AppStart'
+and t1.a_platform in ('Android','ANDROID')
+and t1.a_subscriberid is not null and t2.a_subscriberid is not null
+and t1.a_playduration is not null
+and t1.a_playduration>0
+and t1.a_appversion='3.2.1' and t2.a_appversion='3.2.1'
+group by date
+order by date desc
+
+")
+
+write.table(query, file="PlaybackRaw3.2.1.csv", sep = ",", row.names=FALSE)

@@ -1,0 +1,10 @@
+select avg(t1.sum)/60 as avg,t1.date
+from( select a_subscriberid, trunc(arrival_timestamp) as date,sum(a_playduration) as sum
+from awsma.event
+where event_type in ('MovieViewStop','SongViewStop','SceneViewStop','ContentViewStop')
+and a_platform in ('Android','ANDROID')
+and a_subscriberid is not null and a_playduration is not null
+group by date,a_subscriberid)t1
+where t1.sum>60
+group by t1.date
+order by t1.date desc

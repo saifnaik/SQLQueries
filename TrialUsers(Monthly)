@@ -1,0 +1,20 @@
+SELECT "Event Staging"."a_subscriptionpack" AS "A Subscriptionpack",
+       COUNT(DISTINCT "Event Staging"."a_subscriberid") AS "Count of distinct A Subscriberid"
+FROM "awsma"."event_staging" AS "Event Staging"
+WHERE (("Event Staging"."arrival_timestamp" AT TIME ZONE 'UTC') BETWEEN SYSDATE - INTERVAL '5 MONTH' AND SYSDATE)
+GROUP BY "Event Staging"."a_subscriptionpack"
+ORDER BY "A Subscriptionpack" ASC
+LIMIT 1000;
+
+
+SELECT COUNT(DISTINCT(a_subscriberid) as TRIAL_USERS, a_arrival_timestamp as DATE
+FROM awsma.event
+WHERE ((a_arrival_timestamp AT TIME ZONE 'UTC') BETWEEN SYSDATE - INTERVAL '5 MONTH' AND SYSDATE)
+AND a_subscriptionpack in ('TRIAL','Trial') and a_subscriberid is not null and a_trialuser='YES'
+
+
+SELECT cast(datepart(month,arrival_timestamp) as varchar(2)) +'/'+ cast(datepart(year,arrival_timestamp)as varchar(4)) as TIME,count(distinct(a_subscriberid)) as trial_user
+from awsma.event
+where a_subscriptionpack in ('TRIAL','Trial') and a_subscriberid is not null and a_trialuser='YES'
+group by TIME
+order by TIME asc

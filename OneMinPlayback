@@ -1,0 +1,11 @@
+select count(distinct(a_subscriberid)),t1.TIME
+
+from(
+    select a_subscriberid, cast(datepart(month,arrival_timestamp) as varchar(2)) +'/'+ cast(datepart(year,arrival_timestamp)as varchar(4)) as TIME, sum(a_playduration) as sum
+    from awsma.event
+    where event_type in ('SongViewStop','SceneViewStop','ContentViewStop') and a_subscriberid is not null and a_playduration is not null
+    group by a_subscriberid,TIME
+)t1
+where t1.sum>60
+group by t1.TIME
+order by t1.TIME desc
