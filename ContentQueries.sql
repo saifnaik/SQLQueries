@@ -46,3 +46,7 @@ SELECT COUNT(*),a_contentname
     and a_browsinglanguage='tamil'
 GROUP BY a_contentname
 ORDER BY COUNT DESC
+
+#Clickthroughrate: Within the same session we have to check if a user saw a poseter and playedback the movie
+# MovieClicked event will give content name of the movie and session id. For a given movie we have to 
+# count the number of times a movie was seen and clicked to playback 
